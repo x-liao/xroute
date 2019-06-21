@@ -33,6 +33,20 @@ routeUp(){
 	awk '{print "ip route add "$0}' $route_file | bash
 }
 
+routeDown(){
+	route_file=$1
+	awk '{print "ip route del "$0}' $route_file | bash
+}
+
+routeDownAll(){
+	for inte_name in ${inte_list[@]}; do
+		if [[ ! $inte_excluded =~  ${inte_name:0:3} ]]; then
+			echo "Down $inte_name"
+			routeDown $inte_name
+		fi
+	done
+}
+
 
 backupAll(){
 	for inte_name in ${inte_list[@]}; do
@@ -65,6 +79,7 @@ General Options:
   -h                          Show help.
   -b                          Backup [DEVICE] | [all]
   -r                          Restore [DEVICE] | [all]
+  -d                          Down [DEVICE] | [all]
   -l                          Show Backup
 
 EOF
@@ -83,7 +98,7 @@ if [[ ! -n $1 ]]; then
 	exit 0
 fi
 
-while getopts b:r:lh option; do
+while getopts b:r:d:lh option; do
 	case $option in
 	b)
 		if [[ $OPTARG == 'all' ]]; then
@@ -101,6 +116,16 @@ while getopts b:r:lh option; do
 		else
 			echo "routeUp $OPTARG"
 			routeUp $backup_path/$OPTARG
+		fi
+		;;
+	d)
+
+		if [[ $OPTARG == 'all' ]]; then
+			echo "Down all"
+			routeDownAll
+		else
+			echo "routeDown $OPTARG"
+			routeDown $backup_path/$OPTARG
 		fi
 		;;
 	l)
